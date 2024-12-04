@@ -1,88 +1,145 @@
-// Спрощена система виробництва для мобільної версії
 const ProductionSystem = {
-    // Спрощені рівні карбонізації
+    // Конфігурація методів виробництва
     levels: {
         1: {
-            name: "Кустарний",
-            woodNeeded: 8,    // Скільки дерева потрібно
-            time: 5,          // Час в секундах
+            name: "Кустарний метод",
+            woodNeeded: 8,        // 8 кубів деревини
+            timeMinutes: 20,      // 20 хвилин на цикл
+            maxCapacity: 5,       // 5 тонн за цикл
             chances: {
-                dust: 20,     // Шанс пилу (20%)
-                coal: 75,     // Шанс вугілля (75%)
-                golden: 5     // Шанс золотого (5%)
+                dust: 20,         // 20% вугільний пил
+                coal: 75,         // 75% звичайне вугілля
+                golden: 5         // 5% золоте вугілля
             },
             cost: 0
         },
         2: {
-            name: "Покращений",
+            name: "Покращений метод",
             woodNeeded: 7,
-            time: 4,
+            timeMinutes: 20,
+            maxCapacity: 15,      // 15 тонн за цикл
             chances: {
                 dust: 15,
                 coal: 80,
                 golden: 5
             },
-            cost: 1000
+            cost: 5000
         },
         3: {
-            name: "Піч",
+            name: "Промисловий метод",
             woodNeeded: 6,
-            time: 3,
+            timeMinutes: 20,
+            maxCapacity: 65,      // 65 тонн за цикл
             chances: {
                 dust: 10,
                 coal: 80,
                 golden: 10
             },
-            cost: 5000
+            cost: 25000
+        },
+        4: {
+            name: "Автоматизований метод",
+            woodNeeded: 5,
+            timeMinutes: 20,
+            maxCapacity: 165,     // 165 тонн за цикл
+            chances: {
+                dust: 5,
+                coal: 85,
+                golden: 10
+            },
+            cost: 100000
         }
     },
 
-    // Виробництво
-    produce(level, wood) {
-        const currentLevel = this.levels[level];
-        if (!currentLevel || wood < currentLevel.woodNeeded) {
+    // Перевірка можливості виробництва
+    canProduce(level) {
+        const config = this.levels[level];
+        return {
+            canProduce: Game.state.wood >= config.woodNeeded,
+            woodNeeded: config.woodNeeded,
+            timeNeeded: config.timeMinutes
+        };
+    },
+
+    // Початок виробництва
+    startProduction(level) {
+        const config = this.levels[level];
+        if (!config) return { success: false, message: "Недійсний метод виробництва" };
+
+        if (Game.state.wood < config.woodNeeded) {
             return {
                 success: false,
-                message: "Недостатньо деревини!"
+                message: `Потрібно ${config.woodNeeded} кубів деревини`
             };
         }
 
-        // Визначаємо результат
-        const roll = Math.floor(Math.random() * 100);
-        let result = {
+        // Віднімаємо деревину
+        Game.state.wood -= config.woodNeeded;
+
+        return {
             success: true,
-            woodUsed: currentLevel.woodNeeded,
-            time: currentLevel.time,
-            type: "",
-            amount: 1
+            timeMs: config.timeMinutes * 60 * 1000, // Конвертуємо хвилини в мілісекунди
+            capacity: config.maxCapacity,
+            woodUsed: config.woodNeeded
+        };
+    },
+
+    // Завершення виробництва
+    finishProduction(level) {
+        const config = this.levels[level];
+        const results = {
+            dust: 0,
+            coal: 0,
+            golden: 0
         };
 
-        // Визначаємо тип продукції
-        if (roll < currentLevel.chances.dust) {
-            result.type = "dust";
-        } else if (roll < currentLevel.chances.dust + currentLevel.chances.coal) {
-            result.type = "coal";
-        } else {
-            result.type = "golden";
+        // Розраховуємо результати для кожної тонни
+        for (let i = 0; i < config.maxCapacity; i++) {
+            const roll = Math.random() * 100;
+            if (roll < config.chances.dust) {
+                results.dust++;
+            } else if (roll < config.chances.dust + config.chances.coal) {
+                results.coal++;
+            } else {
+                results.golden++;
+            }
         }
 
-        return result;
-    },
-
-    // Перевірка можливості покращення
-    canUpgrade(currentLevel, money) {
-        const nextLevel = this.levels[currentLevel + 1];
-        return nextLevel && money >= nextLevel.cost;
-    },
-
-    // Отримання інформації про рівень
-    getLevelInfo(level) {
-        const lvl = this.levels[level];
         return {
-            name: lvl.name,
-            wood: lvl.woodNeeded,
-            time: lvl.time,
-            nextCost: this.levels[level + 1]?.cost || "Макс"
+            coalDust: results.dust,
+            coal: results.coal,
+            golden: results.golden,
+            total: config.maxCapacity
+        };
+    },
+
+    // Форматування часу
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    },
+
+    // Отримання інформації про метод
+    getMethodInfo(level) {
+        const config = this.levels[level];
+        return {
+            name: config.name,
+            woodNeeded: config.woodNeeded,
+            timeMinutes: config.timeMinutes,
+            capacity: config.maxCapacity,
+            cost: config.cost,
+            chances: config.chances
+        };
+    },
+
+    // Розрахунок потенційного виходу продукції
+    calculatePotentialOutput(level) {
+        const config = this.levels[level];
+        return {
+            coalDust: Math.floor(config.maxCapacity * (config.chances.dust / 100)),
+            coal: Math.floor(config.maxCapacity * (config.chances.coal / 100)),
+            golden: Math.floor(config.maxCapacity * (config.chances.golden / 100))
         };
     }
 };
