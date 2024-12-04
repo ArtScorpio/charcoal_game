@@ -4,78 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Вугільний магнат</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 10px;
-            background: #1E1E1E;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: white;
-            max-width: 100vw;
-            overflow-x: hidden;
-        }
-
-        .resource-card {
-            background: #2C2C2C;
-            padding: 8px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .button {
-            width: 100%;
-            padding: 12px;
-            margin: 4px 0;
-            border: none;
-            border-radius: 8px;
-            background: #0088cc;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .button:disabled {
-            background: #666;
-        }
-
-        .section {
-            margin: 10px 0;
-            padding: 10px;
-            background: #2C2C2C;
-            border-radius: 8px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-    <div class="resource-card">
-        <span>💰 Гроші:</span>
-        <span id="money">1000</span>
-    </div>
-    <div class="resource-card">
-        <span>🌳 Деревина:</span>
-        <span id="wood">0</span>
+    <!-- Головне меню -->
+    <div class="menu-buttons">
+        <button onclick="showTab('main')" class="tab-button active">🏭 Гра</button>
+        <button onclick="showTab('upgrades')" class="tab-button">⚡ Покращення</button>
+        <button onclick="showTab('achievements')" class="tab-button">🏆 Досягнення</button>
     </div>
 
-    <div class="section">
-        <h3>🪓 Лісоруби (<span id="woodcuttersCount">0</span>/10)</h3>
-        <button onclick="game.hireWoodcutter()" class="button">
-            Найняти лісоруба (💰<span id="woodcutterCost">100</span>)
-        </button>
-    </div>
-
-    <div class="section">
-        <h3>🏭 Виробництво</h3>
+    <!-- Головний екран -->
+    <div id="mainTab" class="tab-content active">
+        <!-- Ресурси -->
         <div class="resource-card">
-            <span>⚫ Вугілля:</span>
-            <span id="coal">0</span>
+            <span>💰 Гроші:</span>
+            <span id="money">1000</span>
         </div>
-        <button onclick="game.produceCoal()" class="button">Виробити вугілля</button>
+        <div class="resource-card">
+            <span>🌳 Деревина:</span>
+            <span id="wood">0</span>
+        </div>
+
+        <!-- Секція лісорубів -->
+        <div class="section">
+            <h3>🪓 Лісоруби (<span id="woodcuttersCount">0</span>/10)</h3>
+            <button onclick="game.hireWoodcutter()" class="button ripple">
+                Найняти лісоруба (💰<span id="woodcutterCost">100</span>)
+            </button>
+        </div>
+
+        <!-- Виробництво -->
+        <div class="section">
+            <h3>🏭 Виробництво</h3>
+            <div class="resources-small">
+                <div class="resource-card">
+                    <span>⚫ Вугільний пил</span>
+                    <span id="coalDust">0</span>
+                </div>
+                <div class="resource-card">
+                    <span>⚫ Вугілля</span>
+                    <span id="coal">0</span>
+                </div>
+                <div class="resource-card">
+                    <span>✨ Золоте вугілля</span>
+                    <span id="goldenCoal">0</span>
+                </div>
+            </div>
+            <button onclick="game.produceCoal()" class="button ripple">Виробити вугілля</button>
+            <div id="productionProgress" class="progress-bar hidden">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
     </div>
 
+    <!-- Екран покращень -->
+    <div id="upgradesTab" class="tab-content">
+        <div class="section">
+            <h3>🔥 Рівні карбонізації</h3>
+            <div id="carbonizationLevels"></div>
+        </div>
+    </div>
+
+    <!-- Екран досягнень -->
+    <div id="achievementsTab" class="tab-content">
+        <div id="achievementsList"></div>
+    </div>
+
+    <!-- Звуки -->
+    <audio id="clickSound" src="sounds/click.mp3" preload="auto"></audio>
+    <audio id="successSound" src="sounds/success.mp3" preload="auto"></audio>
+
+    <!-- Скрипти -->
+    <script src="js/config/achievements.js"></script>
+    <script src="js/config/upgrades.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
