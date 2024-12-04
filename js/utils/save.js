@@ -1,28 +1,36 @@
-// Система збереження для мобільної версії
 const SaveSystem = {
-    // Ключ для локального сховища
     storageKey: 'charcoal_game_save',
+    autoSaveInterval: 30000, // Автозбереження кожні 30 секунд
 
-    // Збереження гри
-    saveGame(state) {
+    init() {
+        // Запуск автозбереження
+        setInterval(() => this.autoSave(), this.autoSaveInterval);
+    },
+
+    autoSave() {
+        this.saveGame();
+        UISystem.showMessage("Гру автоматично збережено", "info");
+    },
+
+    saveGame() {
         try {
-            // Створюємо об'єкт збереження
             const saveData = {
                 version: 1,
                 timestamp: Date.now(),
                 state: {
-                    money: Math.floor(state.money),
-                    wood: Math.floor(state.wood),
-                    coal: Math.floor(state.coal),
-                    woodcutters: state.woodcutters,
-                    carbonizationLevel: state.carbonizationLevel,
-                    lastUpdate: Date.now()
+                    money: Game.state.money,
+                    wood: Game.state.wood,
+                    coalDust: Game.state.coalDust,
+                    coal: Game.state.coal,
+                    goldenCoal: Game.state.goldenCoal,
+                    woodcutters: Game.state.woodcutters,
+                    carbonizationLevel: Game.state.carbonizationLevel,
+                    experience: Game.state.experience,
+                    level: Game.state.level,
+                    unlockedMethods: Game.state.unlockedMethods
                 }
             };
-
-            // Зберігаємо в локальне сховище
             localStorage.setItem(this.storageKey, JSON.stringify(saveData));
-            console.log('Гру збережено');
             return true;
         } catch (error) {
             console.error('Помилка збереження:', error);
@@ -30,47 +38,16 @@ const SaveSystem = {
         }
     },
 
-    // Завантаження збереженої гри
     loadGame() {
         try {
-            // Отримуємо дані з локального сховища
             const savedData = localStorage.getItem(this.storageKey);
-            if (!savedData) {
-                console.log('Збереження не знайдено');
-                return null;
-            }
+            if (!savedData) return null;
 
-            // Парсимо дані
             const data = JSON.parse(savedData);
-            
-            // Перевіряємо версію збереження
-            if (data.version !== 1) {
-                console.log('Несумісна версія збереження');
-                return null;
-            }
-
-            console.log('Збереження завантажено');
             return data.state;
         } catch (error) {
             console.error('Помилка завантаження:', error);
             return null;
         }
-    },
-
-    // Видалення збереження
-    deleteSave() {
-        try {
-            localStorage.removeItem(this.storageKey);
-            console.log('Збереження видалено');
-            return true;
-        } catch (error) {
-            console.error('Помилка видалення збереження:', error);
-            return false;
-        }
-    },
-
-    // Перевірка наявності збереження
-    hasSave() {
-        return localStorage.getItem(this.storageKey) !== null;
     }
 };
