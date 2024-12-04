@@ -10,36 +10,7 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Меню */
-.menu-buttons {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-    background: #2C2C2C;
-    padding: 5px;
-    border-radius: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.tab-button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    background: transparent;
-    color: #888;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.tab-button.active {
-    background: #0088cc;
-    color: white;
-}
-
-/* Картки ресурсів */
+/* Ресурси */
 .resource-card {
     background: #2C2C2C;
     padding: 12px;
@@ -49,18 +20,6 @@ body {
     justify-content: space-between;
     align-items: center;
     font-size: 16px;
-}
-
-.resources-small {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.resources-small .resource-card {
-    margin-bottom: 0;
-    font-size: 14px;
 }
 
 /* Секції */
@@ -119,34 +78,6 @@ body {
     transition: width 0.1s linear;
 }
 
-/* Анімація натискання */
-.ripple {
-    position: relative;
-    overflow: hidden;
-}
-
-@keyframes ripple {
-    to {
-        transform: scale(15);
-        opacity: 0;
-    }
-}
-
-/* Вкладки */
-.tab-content {
-    display: none;
-    animation: fadeIn 0.3s ease-in;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
 /* Повідомлення */
 .game-message {
     position: fixed;
@@ -169,36 +100,5 @@ body {
     to {
         transform: translate(-50%, 0);
         opacity: 1;
-    }
-}
-
-/* Досягнення */
-.achievement {
-    background: #2C2C2C;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-}
-
-.achievement.unlocked {
-    background: linear-gradient(45deg, #2C2C2C, #1a4721);
-}
-
-/* Покращення */
-.upgrade-card {
-    background: #2C2C2C;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-}
-
-.upgrade-card.available {
-    border: 1px solid #0088cc;
-}
-
-/* Додаткові стилі для iOS */
-@supports (-webkit-touch-callout: none) {
-    .button {
-        padding: 14px;
     }
 }
