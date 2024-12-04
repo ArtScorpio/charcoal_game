@@ -1,104 +1,138 @@
-// Ініціалізація основного об'єкта гри
+// Основний об'єкт гри
 const game = {
-    // Базовий стан гри
+    // Стан гри
     state: {
         money: 1000,
         wood: 0,
         woodcutters: 0,
-        toolLevel: 1,
-        unlockedPlots: 1,
-        carbonizationLevel: 1,
-        resources: {
-            coalDust: 0,
-            normalCoal: 0,
-            goldenCoal: 0
-        }
+        coal: 0,
+        lastTick: Date.now(),
+        carbonizationLevel: 1
     },
 
-    // Основні функції гри
-    init: function() {
-        this.loadGame();  // Завантаження збереженої гри
-        this.setupEventListeners();  // Налаштування обробників подій
-        this.startGameLoop();  // Запуск ігрового циклу
-        this.updateDisplay();  // Оновлення відображення
+    // Налаштування
+    config: {
+        maxWoodcutters: 10,
+        baseWoodcutterCost: 100,
+        woodcutterMultiplier: 1.5,
+        woodPerSecond: 1,
+        coalConversionRate: 8, // Скільки дерева потрібно на 1 вугілля
+    },
+
+    // Ініціалізація гри
+    init() {
+        this.loadGame();
+        this.startGameLoop();
+        this.updateDisplay();
     },
 
     // Ігровий цикл
-    startGameLoop: function() {
+    startGameLoop() {
         setInterval(() => {
-            this.produceWood();  // Виробництво деревини
-            this.updateDisplay();  // Оновлення відображення
-            this.saveGame();  // Автозбереження
-        }, 1000);  // Кожну секунду
+            this.tick();
+        }, 1000);
     },
 
-    // Функції виробництва
-    produceWood: function() {
-        const baseProduction = this.state.woodcutters * this.state.toolLevel;
-        this.state.wood += baseProduction;
+    // Оновлення гри кожну секунду
+    tick() {
+        // Виробництво дерева лісорубами
+        if (this.state.woodcutters > 0) {
+            this.state.wood += this.state.woodcutters * this.config.woodPerSecond;
+            this.updateDisplay();
+        }
+        this.saveGame();
     },
 
-    // Наймання лісорубів
-    hireWoodcutter: function() {
-        const cost = this.calculateWoodcutterCost();
-        if (this.state.money >= cost && this.state.woodcutters < 10) {
+    // Наймання лісоруба
+    hireWoodcutter() {
+        const cost = this.getWoodcutterCost();
+        if (this.state.money >= cost && this.state.woodcutters < this.config.maxWoodcutters) {
             this.state.money -= cost;
             this.state.woodcutters++;
             this.updateDisplay();
-        } else {
-            this.showNotification('Недостатньо грошей або досягнуто ліміт лісорубів!');
+            return true;
         }
+        this.showMessage('Недостатньо грошей або досягнуто максимум лісорубів!');
+        return false;
     },
 
-    // Розрахунок вартості
-    calculateWoodcutterCost: function() {
-        return Math.floor(100 * Math.pow(1.5, this.state.woodcutters));
+    // Розрахунок вартості лісоруба
+    getWoodcutterCost() {
+        return Math.floor(this.config.baseWoodcutterCost * 
+               Math.pow(this.config.woodcutterMultiplier, this.state.woodcutters));
+    },
+
+    // Виробництво вугілля
+    produceCoal() {
+        const woodNeeded = this.config.coalConversionRate;
+        if (this.state.wood >= woodNeeded) {
+            this.state.wood -= woodNeeded;
+            this.state.coal += 1;
+            this.updateDisplay();
+            return true;
+        }
+        this.showMessage('Недостатньо деревини!');
+        return false;
     },
 
     // Оновлення відображення
-    updateDisplay: function() {
-        // Оновлення ресурсів
-        document.getElementById('money').textContent = this.state.money;
-        document.getElementById('wood').textContent = this.state.wood;
-        document.getElementById('woodcuttersCount').textContent = this.state.woodcutters;
-        document.getElementById('woodcutterCost').textContent = this.calculateWoodcutterCost();
+    updateDisplay() {
+        // Оновлення основних ресурсів
+        document.getElementById('money').textContent = Math.floor(this.state.money);
+        document.getElementById('wood').textContent = Math.floor(this.state.wood);
+        document.getElementById('coal').textContent = Math.floor(this.state.coal);
         
-        // Оновлення вугілля
-        document.getElementById('coalDust').textContent = this.state.resources.coalDust;
-        document.getElementById('normalCoal').textContent = this.state.resources.normalCoal;
-        document.getElementById('goldenCoal').textContent = this.state.resources.goldenCoal;
+        // Оновлення інформації про лісорубів
+        document.getElementById('woodcuttersCount').textContent = this.state.woodcutters;
+        document.getElementById('woodcutterCost').textContent = this.getWoodcutterCost();
+
+        // Оновлення стану кнопок
+        const hireButton = document.querySelector('button[onclick="game.hireWoodcutter()"]');
+        if (hireButton) {
+            hireButton.disabled = this.state.money < this.getWoodcutterCost() || 
+                                this.state.woodcutters >= this.config.maxWoodcutters;
+        }
+
+        const produceButton = document.querySelector('button[onclick="game.produceCoal()"]');
+        if (produceButton) {
+            produceButton.disabled = this.state.wood < this.config.coalConversionRate;
+        }
     },
 
-    // Збереження/завантаження гри
-    saveGame: function() {
-        localStorage.setItem('charcoalGame', JSON.stringify(this.state));
+    // Показ повідомлень
+    showMessage(text) {
+        const message = document.createElement('div');
+        message.className = 'game-message';
+        message.textContent = text;
+        message.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 1000;
+        `;
+        document.body.appendChild(message);
+        setTimeout(() => message.remove(), 2000);
     },
 
-    loadGame: function() {
+    // Збереження гри
+    saveGame() {
+        const saveData = JSON.stringify(this.state);
+        localStorage.setItem('charcoalGame', saveData);
+    },
+
+    // Завантаження гри
+    loadGame() {
         const savedGame = localStorage.getItem('charcoalGame');
         if (savedGame) {
             this.state = JSON.parse(savedGame);
         }
-    },
-
-    // Сповіщення
-    showNotification: function(message) {
-        // Створення елемента сповіщення
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.textContent = message;
-        
-        // Додавання до сторінки
-        document.body.appendChild(notification);
-        
-        // Видалення через 3 секунди
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
     }
 };
 
-// Запуск гри при завантаженні сторінки
-document.addEventListener('DOMContentLoaded', () => {
-    game.init();
-});
+// Запуск гри при завантаженні
+window.onload = () => game.init();
