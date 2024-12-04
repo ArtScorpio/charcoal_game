@@ -1,103 +1,74 @@
-// Спрощена система лісорубів для мобільної версії
+// Система лісорубів та заготівлі деревини
 const WoodcuttingSystem = {
-    // Спрощені налаштування
+    // Базові налаштування
     config: {
-        maxWoodcutters: 10,
-        baseCost: 100,
-        costMultiplier: 1.5,
-        baseProduction: 1
+        maxWoodcutters: 10,         // Максимальна кількість лісорубів
+        baseWoodcutterCost: 100,    // Початкова вартість лісоруба
+        costMultiplier: 1.5,        // Множник збільшення вартості
+        baseProduction: 1           // Базове виробництво деревини за секунду
     },
 
-    // Стан системи
-    woodcutters: {
-        count: 0,
-        efficiency: 1,
-        // Спрощені ділянки (тільки 4 замість 12)
-        plots: [
-            {
-                id: 1,
-                unlocked: true,
-                efficiency: 1,
-                cost: 0,
-                name: "Звичайна ділянка"
-            },
-            {
-                id: 2,
-                unlocked: false,
-                efficiency: 1.2,
-                cost: 1000,
-                name: "Родюча ділянка"
-            },
-            {
-                id: 3,
-                unlocked: false,
-                efficiency: 1.5,
-                cost: 5000,
-                name: "Багата ділянка"
-            },
-            {
-                id: 4,
-                unlocked: false,
-                efficiency: 2,
-                cost: 10000,
-                name: "Золота ділянка"
-            }
-        ]
+    // Розрахунок вартості найму нового лісоруба
+    calculateHireCost(currentWoodcutters = Game.state.woodcutters) {
+        return Math.floor(
+            this.config.baseWoodcutterCost * 
+            Math.pow(this.config.costMultiplier, currentWoodcutters)
+        );
     },
 
-    // Найм лісоруба
-    hire() {
-        const cost = this.calculateHireCost();
-        if (game.state.money >= cost && this.woodcutters.count < this.config.maxWoodcutters) {
-            game.state.money -= cost;
-            this.woodcutters.count++;
-            return {
-                success: true,
-                message: "Лісоруб найнятий!"
-            };
-        }
-        return {
-            success: false,
-            message: this.woodcutters.count >= this.config.maxWoodcutters ? 
-                    "Досягнуто максимум лісорубів!" : 
-                    "Недостатньо грошей!"
-        };
-    },
-
-    // Розрахунок вартості найму
-    calculateHireCost() {
-        return Math.floor(this.config.baseCost * 
-               Math.pow(this.config.costMultiplier, this.woodcutters.count));
-    },
-
-    // Розблокування ділянки
-    unlockPlot(plotId) {
-        const plot = this.woodcutters.plots.find(p => p.id === plotId);
-        if (plot && !plot.unlocked && game.state.money >= plot.cost) {
-            game.state.money -= plot.cost;
-            plot.unlocked = true;
-            return {
-                success: true,
-                message: `${plot.name} розблокована!`
-            };
-        }
-        return {
-            success: false,
-            message: "Недостатньо грошей!"
-        };
-    },
-
-    // Виробництво деревини (спрощене)
+    // Розрахунок виробництва деревини
     produce() {
-        if (this.woodcutters.count === 0) return 0;
+        if (Game.state.woodcutters === 0) return 0;
+        
+        // Базове виробництво: кількість лісорубів * базове виробництво
+        let production = Game.state.woodcutters * this.config.baseProduction;
+        
+        // Округляємо до 2 знаків після коми
+        return Math.round(production * 100) / 100;
+    },
 
-        const unlockedPlots = this.woodcutters.plots.filter(plot => plot.unlocked);
-        let totalProduction = 0;
+    // Перевірка можливості найму
+    canHire() {
+        const cost = this.calculateHireCost();
+        return {
+            canHire: Game.state.money >= cost && Game.state.woodcutters < this.config.maxWoodcutters,
+            reason: Game.state.money < cost ? 
+                    "Недостатньо грошей" : 
+                    Game.state.woodcutters >= this.config.maxWoodcutters ?
+                    "Досягнуто максимум лісорубів" : ""
+        };
+    },
 
-        unlockedPlots.forEach(plot => {
-            totalProduction += this.woodcutters.count * plot.efficiency;
-        });
+    // Найм нового лісоруба
+    hire() {
+        const check = this.canHire();
+        if (!check.canHire) {
+            return {
+                success: false,
+                message: check.reason
+            };
+        }
 
-        return Math.floor(totalProduction);
+        const cost = this.calculateHireCost();
+        Game.state.money -= cost;
+        Game.state.woodcutters++;
+
+        return {
+            success: true,
+            message: "Лісоруб найнятий!",
+            newCount: Game.state.woodcutters,
+            cost: cost
+        };
+    },
+
+    // Отримання інформації про лісорубів
+    getInfo() {
+        return {
+            count: Game.state.woodcutters,
+            maxCount: this.config.maxWoodcutters,
+            productionPerSecond: this.produce(),
+            nextHireCost: this.calculateHireCost(),
+            canHire: this.canHire().canHire
+        };
     }
 };
