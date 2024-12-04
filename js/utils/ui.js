@@ -2,72 +2,86 @@
 const UISystem = {
     // Оновлення відображення ресурсів
     updateResources(state) {
-        // Оновлення основних ресурсів
-        const elements = {
-            'money': state.money,
-            'wood': state.wood,
-            'coal': state.coal,
-            'woodcutters': state.woodcutters
+        // Округлення всіх числових значень
+        const formattedState = {
+            money: Math.floor(state.money),
+            wood: Math.floor(state.wood),
+            coal: Math.floor(state.coal),
+            woodcutters: state.woodcutters
         };
 
-        for (let [id, value] of Object.entries(elements)) {
-            const element = document.getElementById(id);
+        // Оновлення значень на екрані
+        for (const [key, value] of Object.entries(formattedState)) {
+            const element = document.getElementById(key);
             if (element) {
-                element.textContent = Math.floor(value);
+                element.textContent = value;
             }
         }
 
-        // Оновлення кнопок
+        // Оновлення вартості лісоруба
+        const woodcutterCost = document.getElementById('woodcutterCost');
+        if (woodcutterCost) {
+            woodcutterCost.textContent = WoodcuttingSystem.calculateHireCost();
+        }
+
+        // Оновлення стану кнопок
         this.updateButtons(state);
     },
 
     // Оновлення стану кнопок
     updateButtons(state) {
-        // Кнопка найму лісоруба
+        // Кнопка найму
         const hireButton = document.getElementById('hireButton');
         if (hireButton) {
-            const cost = WoodcuttingSystem.calculateHireCost();
-            hireButton.disabled = state.money < cost || 
-                                state.woodcutters >= WoodcuttingSystem.config.maxWoodcutters;
-            hireButton.textContent = `Найняти лісоруба (${cost} 💰)`;
+            const hireCost = WoodcuttingSystem.calculateHireCost();
+            hireButton.disabled = state.money < hireCost || state.woodcutters >= 10;
         }
 
         // Кнопка виробництва
         const produceButton = document.getElementById('produceButton');
         if (produceButton) {
-            const woodNeeded = ProductionSystem.levels[state.carbonizationLevel].woodNeeded;
-            produceButton.disabled = state.wood < woodNeeded;
+            produceButton.disabled = state.wood < 8; // Базова вимога деревини
         }
     },
 
     // Показ повідомлень
     showMessage(text, type = 'info') {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `game-message ${type}`;
-        messageDiv.textContent = text;
+        // Видалення попередніх повідомлень
+        const oldMessages = document.getElementsByClassName('game-message');
+        Array.from(oldMessages).forEach(msg => msg.remove());
+
+        // Створення нового повідомлення
+        const message = document.createElement('div');
+        message.className = `game-message ${type}`;
+        message.textContent = text;
         
-        document.body.appendChild(messageDiv);
+        document.body.appendChild(message);
         
+        // Автоматичне видалення повідомлення
         setTimeout(() => {
-            messageDiv.classList.add('fade-out');
-            setTimeout(() => messageDiv.remove(), 300);
+            message.style.opacity = '0';
+            setTimeout(() => message.remove(), 300);
         }, 2000);
     },
 
-    // Анімація виробництва
+    // Показ прогресу виробництва
     showProduction(duration) {
         const progressBar = document.getElementById('productionProgress');
-        if (!progressBar) return;
+        const progressFill = progressBar.querySelector('.progress-fill');
+        
+        if (!progressBar || !progressFill) return;
 
+        // Показуємо прогрес-бар
         progressBar.style.display = 'block';
-        progressBar.style.width = '0%';
+        progressFill.style.width = '0%';
 
+        // Анімація заповнення
         const startTime = Date.now();
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min((elapsed / duration) * 100, 100);
             
-            progressBar.style.width = `${progress}%`;
+            progressFill.style.width = `${progress}%`;
 
             if (progress < 100) {
                 requestAnimationFrame(animate);
