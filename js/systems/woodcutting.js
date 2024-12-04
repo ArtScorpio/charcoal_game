@@ -61,6 +61,10 @@ const WoodcuttingSystem = {
         };
     },
 
+    // Додати у WoodcuttingSystem
+getProductionPerSecond() {
+    return this.config.baseProduction * this.woodcutters.count;
+}
     // Отримання інформації про лісорубів
     getInfo() {
         return {
