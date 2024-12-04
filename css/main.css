@@ -1,0 +1,123 @@
+/* Основні стилі */
+body {
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.3);
+}
+
+/* Ресурси */
+.resources {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.resource-card {
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.resource-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Секція лісорубів */
+.woodcutters-section {
+    background: linear-gradient(45deg, #2d5a27, #1e4d1a);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    margin: 20px 0;
+}
+
+/* Ділянки лісу */
+.forest-plots {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.forest-plot {
+    background: linear-gradient(45deg, #2d5a27, #1e4d1a);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.forest-plot:hover {
+    transform: scale(1.05);
+}
+
+.forest-plot.locked {
+    background: linear-gradient(45deg, #463e3e, #2a2a2a);
+    opacity: 0.7;
+}
+
+/* Кнопки */
+.button {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.button:hover {
+    transform: translateY(-2px);
+}
+
+.button:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+/* Прогрес бари */
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    width: 0%;
+    transition: width 0.3s;
+}
+
+/* Анімації */
+@keyframes working {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.working {
+    animation: working 1s infinite;
+}
