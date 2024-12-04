@@ -1,130 +1,103 @@
-// Система лісорубів та заготівлі деревини
+// Спрощена система лісорубів для мобільної версії
 const WoodcuttingSystem = {
-    // Базові налаштування
+    // Спрощені налаштування
     config: {
         maxWoodcutters: 10,
-        baseWoodcutterCost: 100,
+        baseCost: 100,
         costMultiplier: 1.5,
-        baseProductionTime: 1000, // 1 секунда
         baseProduction: 1
     },
 
-    // Система лісорубів
+    // Стан системи
     woodcutters: {
         count: 0,
         efficiency: 1,
-        working: false,
-        plots: new Array(12).fill().map((_, index) => ({
-            id: index + 1,
-            unlocked: index === 0,
-            efficiency: 1 + (index * 0.1),
-            cost: 1000 * Math.pow(2, index),
-            name: `Ділянка ${index + 1}`,
-            description: `Ефективність: +${index * 10}%`
-        }))
+        // Спрощені ділянки (тільки 4 замість 12)
+        plots: [
+            {
+                id: 1,
+                unlocked: true,
+                efficiency: 1,
+                cost: 0,
+                name: "Звичайна ділянка"
+            },
+            {
+                id: 2,
+                unlocked: false,
+                efficiency: 1.2,
+                cost: 1000,
+                name: "Родюча ділянка"
+            },
+            {
+                id: 3,
+                unlocked: false,
+                efficiency: 1.5,
+                cost: 5000,
+                name: "Багата ділянка"
+            },
+            {
+                id: 4,
+                unlocked: false,
+                efficiency: 2,
+                cost: 10000,
+                name: "Золота ділянка"
+            }
+        ]
     },
 
-    // Методи для роботи з лісорубами
-    hire: function() {
+    // Найм лісоруба
+    hire() {
         const cost = this.calculateHireCost();
         if (game.state.money >= cost && this.woodcutters.count < this.config.maxWoodcutters) {
             game.state.money -= cost;
             this.woodcutters.count++;
-            return true;
+            return {
+                success: true,
+                message: "Лісоруб найнятий!"
+            };
         }
-        return false;
+        return {
+            success: false,
+            message: this.woodcutters.count >= this.config.maxWoodcutters ? 
+                    "Досягнуто максимум лісорубів!" : 
+                    "Недостатньо грошей!"
+        };
     },
 
-    calculateHireCost: function() {
-        return Math.floor(this.config.baseWoodcutterCost * 
+    // Розрахунок вартості найму
+    calculateHireCost() {
+        return Math.floor(this.config.baseCost * 
                Math.pow(this.config.costMultiplier, this.woodcutters.count));
     },
 
-    // Методи для роботи з ділянками
-    unlockPlot: function(plotId) {
-        const plot = this.woodcutters.plots[plotId - 1];
+    // Розблокування ділянки
+    unlockPlot(plotId) {
+        const plot = this.woodcutters.plots.find(p => p.id === plotId);
         if (plot && !plot.unlocked && game.state.money >= plot.cost) {
             game.state.money -= plot.cost;
             plot.unlocked = true;
-            return true;
+            return {
+                success: true,
+                message: `${plot.name} розблокована!`
+            };
         }
-        return false;
+        return {
+            success: false,
+            message: "Недостатньо грошей!"
+        };
     },
 
-    getUnlockedPlots: function() {
-        return this.woodcutters.plots.filter(plot => plot.unlocked);
-    },
-
-    // Виробництво деревини
-    produce: function() {
+    // Виробництво деревини (спрощене)
+    produce() {
         if (this.woodcutters.count === 0) return 0;
 
+        const unlockedPlots = this.woodcutters.plots.filter(plot => plot.unlocked);
         let totalProduction = 0;
-        const unlockedPlots = this.getUnlockedPlots();
 
         unlockedPlots.forEach(plot => {
-            const baseProduction = this.config.baseProduction * 
-                                 this.woodcutters.count * 
-                                 plot.efficiency * 
-                                 this.woodcutters.efficiency;
-            
-            totalProduction += Math.floor(baseProduction);
+            totalProduction += this.woodcutters.count * plot.efficiency;
         });
 
-        return totalProduction;
-    },
-
-    // Покращення ефективності
-    upgradeEfficiency: function(cost, multiplier) {
-        if (game.state.money >= cost) {
-            game.state.money -= cost;
-            this.woodcutters.efficiency *= multiplier;
-            return true;
-        }
-        return false;
-    },
-
-    // Система подій
-    events: {
-        types: {
-            RAIN: {
-                name: "Дощ",
-                duration: 300, // 5 хвилин
-                effect: 0.5,  // -50% до ефективності
-                description: "Дощ зменшує ефективність лісорубів"
-            },
-            SUNNY: {
-                name: "Сонячний день",
-                duration: 300,
-                effect: 1.5, // +50% до ефективності
-                description: "Сонячна погода підвищує ефективність"
-            }
-        },
-        
-        currentEvent: null,
-        
-        startRandomEvent: function() {
-            const events = Object.values(this.types);
-            const randomEvent = events[Math.floor(Math.random() * events.length)];
-            
-            this.currentEvent = {
-                type: randomEvent,
-                timeLeft: randomEvent.duration,
-                startTime: Date.now()
-            };
-            
-            return this.currentEvent;
-        },
-        
-        updateEvents: function() {
-            if (!this.currentEvent) return;
-            
-            const now = Date.now();
-            const elapsed = (now - this.currentEvent.startTime) / 1000;
-            
-            if (elapsed >= this.currentEvent.type.duration) {
-                this.currentEvent = null;
-            }
-        }
+        return Math.floor(totalProduction);
     }
 };
