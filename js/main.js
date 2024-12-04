@@ -6,15 +6,18 @@ const Game = {
         wood: 0,
         coal: 0,
         woodcutters: 0,
-        carbonizationLevel: 1
+        carbonizationLevel: 1,
+        lastUpdate: Date.now()
     },
 
     // Ініціалізація гри
     init() {
-        // Завантаження збереженої гри
+        console.log('Гра запускається...');
+        // Завантаження збереження
         const savedState = SaveSystem.loadGame();
         if (savedState) {
             this.state = savedState;
+            console.log('Завантажено збережену гру');
         }
 
         // Запуск ігрового циклу
@@ -23,55 +26,58 @@ const Game = {
         this.updateUI();
     },
 
-    // Ігровий цикл (виконується кожну секунду)
+    // Ігровий цикл
     startGameLoop() {
         setInterval(() => {
-            // Виробництво деревини лісорубами
-            const woodProduction = WoodcuttingSystem.produce();
-            this.state.wood += woodProduction;
+            const now = Date.now();
+            const delta = (now - this.state.lastUpdate) / 1000;
 
-            // Оновлення інтерфейсу
+            // Виробництво деревини лісорубами
+            if (this.state.woodcutters > 0) {
+                const production = WoodcuttingSystem.produce() * delta;
+                this.state.wood += production;
+            }
+
+            this.state.lastUpdate = now;
             this.updateUI();
-            // Збереження гри
             SaveSystem.saveGame(this.state);
         }, 1000);
     },
 
     // Найм лісоруба
     hireWoodcutter() {
-        const result = WoodcuttingSystem.hire();
-        if (result.success) {
+        const cost = WoodcuttingSystem.calculateHireCost();
+        if (this.state.money >= cost && this.state.woodcutters < 10) {
+            this.state.money -= cost;
             this.state.woodcutters++;
-            this.state.money -= WoodcuttingSystem.calculateHireCost();
-            UISystem.showMessage("Лісоруб найнятий!");
+            UISystem.showMessage("Найнято нового лісоруба!");
+            this.updateUI();
+            return true;
         } else {
-            UISystem.showMessage(result.message, 'error');
+            UISystem.showMessage(
+                this.state.woodcutters >= 10 ? 
+                "Досягнуто максимум лісорубів!" : 
+                "Недостатньо грошей!",
+                'error'
+            );
+            return false;
         }
-        this.updateUI();
     },
 
     // Виробництво вугілля
     produceCoal() {
-        const currentLevel = ProductionSystem.levels[this.state.carbonizationLevel];
-        if (this.state.wood >= currentLevel.woodNeeded) {
-            this.state.wood -= currentLevel.woodNeeded;
+        const woodNeeded = 8; // Базова вимога деревини
+        if (this.state.wood >= woodNeeded) {
+            this.state.wood -= woodNeeded;
             
-            // Показуємо анімацію виробництва
-            UISystem.showProduction(currentLevel.time * 1000);
+            // Показуємо прогрес виробництва
+            UISystem.showProduction(5000); // 5 секунд на виробництво
 
-            // Запускаємо виробництво
             setTimeout(() => {
-                const result = ProductionSystem.produce(
-                    this.state.carbonizationLevel, 
-                    currentLevel.woodNeeded
-                );
-
-                if (result.success) {
-                    this.state.coal += result.amount;
-                    UISystem.showMessage(`Отримано ${result.amount} вугілля!`);
-                }
+                this.state.coal++;
+                UISystem.showMessage("Вироблено вугілля!");
                 this.updateUI();
-            }, currentLevel.time * 1000);
+            }, 5000);
         } else {
             UISystem.showMessage("Недостатньо деревини!", 'error');
         }
@@ -83,16 +89,26 @@ const Game = {
     }
 };
 
-// Запуск гри при завантаженні сторінки
+// Запуск гри при завантаженні
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Сторінка завантажена, ініціалізація гри...');
+    
+    // Ініціалізація гри
     Game.init();
 
-    // Обробники подій для кнопок
-    document.getElementById('hireButton')?.addEventListener('click', () => {
-        Game.hireWoodcutter();
-    });
+    // Додавання обробників подій для кнопок
+    const hireButton = document.getElementById('hireButton');
+    const produceButton = document.getElementById('produceButton');
 
-    document.getElementById('produceButton')?.addEventListener('click', () => {
-        Game.produceCoal();
-    });
+    if (hireButton) {
+        hireButton.addEventListener('click', () => {
+            Game.hireWoodcutter();
+        });
+    }
+
+    if (produceButton) {
+        produceButton.addEventListener('click', () => {
+            Game.produceCoal();
+        });
+    }
 });
