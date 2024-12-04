@@ -1,65 +1,81 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Виробництво деревного вугілля</title>
-    <link rel="stylesheet" href="css/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Вугільний магнат</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background: #1E1E1E;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .resource-card {
+            background: #2C2C2C;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            margin: 4px 0;
+            border: none;
+            border-radius: 8px;
+            background: #0088cc;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .button:disabled {
+            background: #666;
+        }
+
+        .section {
+            margin: 10px 0;
+            padding: 10px;
+            background: #2C2C2C;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- Верхня панель з ресурсами -->
-        <div class="resources">
-            <div class="resource-card" style="background: linear-gradient(45deg, #f1c40f, #f39c12);">
-                <div>💰 Гроші</div>
-                <div id="money">1000</div>
-            </div>
-            <div class="resource-card" style="background: linear-gradient(45deg, #27ae60, #2ecc71);">
-                <div>🌳 Деревина</div>
-                <div id="wood">0</div>
-            </div>
-            <div class="resource-card" style="background: linear-gradient(45deg, #2c3e50, #34495e);">
-                <div>⚫ Вугільний пил</div>
-                <div id="coalDust">0</div>
-            </div>
-            <div class="resource-card" style="background: linear-gradient(45deg, #2c3e50, #34495e);">
-                <div>⚫ Деревне вугілля</div>
-                <div id="normalCoal">0</div>
-            </div>
-            <div class="resource-card" style="background: linear-gradient(45deg, #f1c40f, #f39c12);">
-                <div>✨ Золоте вугілля</div>
-                <div id="goldenCoal">0</div>
-            </div>
-        </div>
-
-        <!-- Секція лісорубів -->
-        <div class="woodcutters-section">
-            <h2>🪓 Лісоруби</h2>
-            <div>Кількість лісорубів: <span id="woodcuttersCount">0</span>/10</div>
-            <div>Вартість найму: 💰<span id="woodcutterCost">100</span></div>
-            <button onclick="game.hireWoodcutter()" class="button">Найняти лісоруба</button>
-        </div>
-
-        <!-- Ділянки лісу -->
-        <h2>🌲 Ділянки лісу</h2>
-        <div id="forestPlots" class="forest-plots">
-            <!-- Генерується динамічно -->
-        </div>
-
-        <!-- Рівні карбонізації -->
-        <h2>🔥 Методи карбонізації</h2>
-        <div id="carbonizationLevels" class="carbonization-levels">
-            <!-- Генерується динамічно -->
-        </div>
+    <div class="resource-card">
+        <span>💰 Гроші:</span>
+        <span id="money">1000</span>
+    </div>
+    <div class="resource-card">
+        <span>🌳 Деревина:</span>
+        <span id="wood">0</span>
     </div>
 
-    <!-- Підключення скриптів -->
-    <script src="js/config/achievements.js"></script>
-    <script src="js/config/upgrades.js"></script>
-    <script src="js/config/carbonization.js"></script>
-    <script src="js/systems/woodcutting.js"></script>
-    <script src="js/systems/production.js"></script>
-    <script src="js/utils/save.js"></script>
+    <div class="section">
+        <h3>🪓 Лісоруби (<span id="woodcuttersCount">0</span>/10)</h3>
+        <button onclick="game.hireWoodcutter()" class="button">
+            Найняти лісоруба (💰<span id="woodcutterCost">100</span>)
+        </button>
+    </div>
+
+    <div class="section">
+        <h3>🏭 Виробництво</h3>
+        <div class="resource-card">
+            <span>⚫ Вугілля:</span>
+            <span id="coal">0</span>
+        </div>
+        <button onclick="game.produceCoal()" class="button">Виробити вугілля</button>
+    </div>
+
     <script src="js/main.js"></script>
 </body>
 </html>
