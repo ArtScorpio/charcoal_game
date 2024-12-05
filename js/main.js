@@ -157,6 +157,30 @@ const Game = {
         }
     },
 
+    // У Game об'єкт додайте:
+prices: {
+    wood: 10,
+    coalDust: 50,
+    coal: 150,
+    goldenCoal: 300
+},
+
+sellResource(type) {
+    if (this.state[type] >= 1) {
+        this.state[type]--;
+        const price = this.prices[type];
+        this.state.money += price;
+        
+        // Додаємо досвід за продаж
+        const expGain = Math.floor(price / 10);  // 1 досвід за кожні 10 монет
+        this.addExperience(expGain);
+        
+        this.showMessage(`+${price}💰`);
+        this.updateUI();
+    } else {
+        this.showMessage(`Недостатньо ресурсу для продажу!`);
+    }
+},
     // Система досвіду
     addExperience(amount) {
         this.state.experience += amount;
