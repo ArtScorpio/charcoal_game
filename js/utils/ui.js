@@ -1,20 +1,26 @@
-// Система інтерфейсу для мобільної версії
 const UISystem = {
+    // Конфігурація UI
+    config: {
+        messageTimeout: 3000,    // Час показу повідомлень (3 секунди)
+        maxMessages: 3,          // Максимальна кількість повідомлень одночасно
+        updateInterval: 100      // Інтервал оновлення прогрес-барів
+    },
+
     // Оновлення відображення ресурсів
     updateResources(state) {
-        // Округлення всіх числових значень
-        const formattedState = {
-            money: Math.floor(state.money),
-            wood: Math.floor(state.wood),
-            coal: Math.floor(state.coal),
-            woodcutters: state.woodcutters
+        const elements = {
+            'money': state.money,
+            'wood': state.wood,
+            'coalDust': state.coalDust,
+            'coal': state.coal,
+            'goldenCoal': state.goldenCoal,
+            'woodcuttersCount': state.woodcutters
         };
 
-        // Оновлення значень на екрані
-        for (const [key, value] of Object.entries(formattedState)) {
-            const element = document.getElementById(key);
+        for (const [id, value] of Object.entries(elements)) {
+            const element = document.getElementById(id);
             if (element) {
-                element.textContent = value;
+                element.textContent = Math.floor(value);
             }
         }
 
@@ -24,7 +30,6 @@ const UISystem = {
             woodcutterCost.textContent = WoodcuttingSystem.calculateHireCost();
         }
 
-        // Оновлення стану кнопок
         this.updateButtons(state);
     },
 
@@ -34,64 +39,105 @@ const UISystem = {
         const hireButton = document.getElementById('hireButton');
         if (hireButton) {
             const hireCost = WoodcuttingSystem.calculateHireCost();
-            hireButton.disabled = state.money < hireCost || state.woodcutters >= 10;
+            hireButton.disabled = state.money < hireCost || 
+                                state.woodcutters >= WoodcuttingSystem.config.maxWoodcutters;
         }
 
-        // Кнопка виробництва
-        const produceButton = document.getElementById('produceButton');
-        if (produceButton) {
-            produceButton.disabled = state.wood < 8; // Базова вимога деревини
-        }
+        // Кнопки методів виробництва
+        ProductionSystem.levels.forEach((level, index) => {
+            const button = document.getElementById(`method${index + 1}`);
+            if (button) {
+                button.disabled = state.money < level.cost || 
+                                state.wood < level.woodNeeded;
+            }
+        });
     },
 
     // Показ повідомлень
     showMessage(text, type = 'info') {
-        // Видалення попередніх повідомлень
+        // Видалення старих повідомлень
         const oldMessages = document.getElementsByClassName('game-message');
-        Array.from(oldMessages).forEach(msg => msg.remove());
+        if (oldMessages.length >= this.config.maxMessages) {
+            oldMessages[0].remove();
+        }
 
         // Створення нового повідомлення
         const message = document.createElement('div');
         message.className = `game-message ${type}`;
         message.textContent = text;
+
+        // Позиціонування повідомлення
+        message.style.bottom = `${20 + (oldMessages.length * 60)}px`;
         
         document.body.appendChild(message);
-        
-        // Автоматичне видалення повідомлення
+
+        // Анімація появи
+        setTimeout(() => {
+            message.style.opacity = '1';
+        }, 10);
+
+        // Автоматичне видалення
         setTimeout(() => {
             message.style.opacity = '0';
             setTimeout(() => message.remove(), 300);
-        }, 2000);
+        }, this.config.messageTimeout);
     },
 
     // Показ прогресу виробництва
-    showProduction(duration) {
+    showProgress(totalSeconds) {
         const progressBar = document.getElementById('productionProgress');
         const progressFill = progressBar.querySelector('.progress-fill');
-        
-        if (!progressBar || !progressFill) return;
+        const timeLeft = progressBar.querySelector('.progress-text');
 
-        // Показуємо прогрес-бар
         progressBar.style.display = 'block';
-        progressFill.style.width = '0%';
-
-        // Анімація заповнення
-        const startTime = Date.now();
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min((elapsed / duration) * 100, 100);
-            
+        let secondsLeft = totalSeconds;
+        
+        const updateProgress = () => {
+            const progress = ((totalSeconds - secondsLeft) / totalSeconds) * 100;
             progressFill.style.width = `${progress}%`;
-
-            if (progress < 100) {
-                requestAnimationFrame(animate);
+            
+            const minutes = Math.floor(secondsLeft / 60);
+            const seconds = Math.floor(secondsLeft % 60);
+            timeLeft.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            secondsLeft -= this.config.updateInterval / 1000;
+            
+            if (secondsLeft > 0) {
+                setTimeout(updateProgress, this.config.updateInterval);
             } else {
-                setTimeout(() => {
-                    progressBar.style.display = 'none';
-                }, 200);
+                progressBar.style.display = 'none';
             }
         };
 
-        requestAnimationFrame(animate);
+        updateProgress();
+    },
+
+    // Оновлення прогрес-бару досвіду
+    updateExperience(current, needed) {
+        const expBar = document.querySelector('.exp-fill');
+        const expText = document.querySelector('.exp-text');
+        
+        if (expBar && expText) {
+            const percentage = (current / needed) * 100;
+            expBar.style.width = `${Math.min(percentage, 100)}%`;
+            expText.textContent = `${Math.floor(current)}/${needed} EXP`;
+        }
+    },
+
+    // Форматування чисел
+    formatNumber(number) {
+        if (number >= 1000000) {
+            return (number / 1000000).toFixed(1) + 'M';
+        } else if (number >= 1000) {
+            return (number / 1000).toFixed(1) + 'K';
+        }
+        return Math.floor(number).toString();
+    },
+
+    // Форматування часу
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 };
