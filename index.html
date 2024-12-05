@@ -50,53 +50,36 @@
 
         .sell-button {
             background: #27ae60;
-            padding: 5px 10px;
+            color: white;
             border: none;
             border-radius: 4px;
-            color: white;
+            padding: 5px 10px;
             cursor: pointer;
             margin-left: 10px;
+            font-size: 12px;
+        }
+
+        .sell-button:hover {
+            background: #219a52;
+        }
+
+        .sell-button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
-    <!-- Досвід -->
-    <div class="section">
-        <div>Рівень: <span id="level">1</span></div>
-        <div>Досвід: <span id="experience">0</span>/<span id="expNeeded">1000</span></div>
+    <!-- Ресурси -->
+    <div class="resource-card">
+        <span>💰 Гроші:</span>
+        <span id="money">1000</span>
     </div>
-
-   <!-- Ресурси -->
-<div class="resource-card">
-    <span>💰 Гроші:</span>
-    <span id="money">1000</span>
-</div>
-<div class="resource-card">
-    <span>🌳 Деревина: <span id="wood">0</span></span>
-    <button onclick="Game.sellResource('wood')" class="sell-button">
-        Продати 1 (10💰)
-    </button>
-</div>
-
-<!-- Виробничі ресурси -->
-<div class="resource-card">
-    <span>💨 Вугільний пил: <span id="coalDust">0</span></span>
-    <button onclick="Game.sellResource('coalDust')" class="sell-button">
-        Продати 1 (50💰)
-    </button>
-</div>
-<div class="resource-card">
-    <span>⚫ Деревне вугілля: <span id="coal">0</span></span>
-    <button onclick="Game.sellResource('coal')" class="sell-button">
-        Продати 1 (150💰)
-    </button>
-</div>
-<div class="resource-card">
-    <span>✨ Золоте вугілля: <span id="goldenCoal">0</span></span>
-    <button onclick="Game.sellResource('goldenCoal')" class="sell-button">
-        Продати 1 (300💰)
-    </button>
-</div>
+    <div class="resource-card">
+        <span>🌳 Деревина: <span id="wood">0</span></span>
+        <button onclick="Game.sellResource('wood')" class="sell-button">
+            Продати 1 (10💰)
+        </button>
+    </div>
 
     <!-- Лісоруби -->
     <div class="section">
@@ -110,22 +93,24 @@
     <div class="section">
         <h3>🏭 Виробництво</h3>
         <div class="resource-card">
-            <span>💨 Вугільний пил:</span>
-            <span id="coalDust">0</span>
-            <button onclick="Game.sellCoalDust()" class="sell-button">Продати (50💰)</button>
+            <span>💨 Вугільний пил: <span id="coalDust">0</span></span>
+            <button onclick="Game.sellResource('coalDust')" class="sell-button">
+                Продати 1 (50💰)
+            </button>
         </div>
         <div class="resource-card">
-            <span>⚫ Деревне вугілля:</span>
-            <span id="coal">0</span>
-            <button onclick="Game.sellCoal()" class="sell-button">Продати (150💰)</button>
+            <span>⚫ Деревне вугілля: <span id="coal">0</span></span>
+            <button onclick="Game.sellResource('coal')" class="sell-button">
+                Продати 1 (150💰)
+            </button>
         </div>
         <div class="resource-card">
-            <span>✨ Золоте вугілля:</span>
-            <span id="goldenCoal">0</span>
-            <button onclick="Game.sellGoldenCoal()" class="sell-button">Продати (300💰)</button>
+            <span>✨ Золоте вугілля: <span id="goldenCoal">0</span></span>
+            <button onclick="Game.sellResource('goldenCoal')" class="sell-button">
+                Продати 1 (300💰)
+            </button>
         </div>
 
-        <!-- Методи виробництва -->
         <button onclick="Game.produceCoal(1)" class="button">
             Кустарний метод (8 деревини)
         </button>
@@ -137,6 +122,6 @@
         </button>
     </div>
 
-    <script src="js/main.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
